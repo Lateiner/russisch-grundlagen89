@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Genus der Zahlwörter</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .instruction {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        /* Auswahl der Zahlwörter */
+        .source-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .number-card {
+            background: var(--accent-color);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            user-select: none;
+        }
+
+        .number-card.selected {
+            background: var(--primary-color);
+            border-color: #f1c40f;
+            transform: scale(0.95);
+        }
+
+        /* Übungs-Gitter */
+        .exercise-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .noun-label {
+            text-align: right;
+            font-size: 1.1rem;
+            padding-right: 10px;
+            color: var(--primary-color);
+        }
+
+        .drop-zone {
+            height: 48px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+            user-select: none;
+        }
+
+        /* Feedback-Klassen */
+        .correct {
+            background-color: var(--success-color) !important;
+            color: white !important;
+            border-color: var(--success-color) !important;
+        }
+
+        .wrong {
+            background-color: var(--error-color) !important;
+            color: white !important;
+            border-color: var(--error-color) !important;
+        }
+
+        .controls {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        #reset-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        #reset-btn:hover {
+            background: #34495e;
+        }
+
+        /* Responsive Anpassung für Smartphones */
+        @media (max-width: 400px) {
+            .exercise-grid { grid-template-columns: 1fr; }
+            .noun-label { text-align: center; padding-right: 0; margin-bottom: -5px; font-size: 1rem; }
+            .source-container { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Zahlwort „один“</h1>
+    <p class="instruction">
+        Wähle ein blaues Wort aus und klicke dann auf das Feld neben dem Substantiv. 
+        Du siehst sofort, ob es richtig ist!
+    </p>
+
+    <!-- Zahlwort-Auswahl -->
+    <div class="source-container" id="source">
+        <div class="number-card" data-word="один">один</div>
+        <div class="number-card" data-word="одна">одна</div>
+        <div class="number-card" data-word="одно">одно</div>
+        <div class="number-card" data-word="одни">одни</div>
+    </div>
+
+    <!-- Substantive und Lücken -->
+    <div class="exercise-grid">
+        <div class="noun-label">словарь (m)</div>
+        <div class="drop-zone" data-answer="один"></div>
+
+        <div class="noun-label">кровать (f)</div>
+        <div class="drop-zone" data-answer="одна"></div>
+
+        <div class="noun-label">слово (n)</div>
+        <div class="drop-zone" data-answer="одно"></div>
+
+        <div class="noun-label">перчатки (pl)</div>
+        <div class="drop-zone" data-answer="одни"></div>
+
+        <div class="noun-label">здание (n)</div>
+        <div class="drop-zone" data-answer="одно"></div>
+
+        <div class="noun-label">студент (m)</div>
+        <div class="drop-zone" data-answer="один"></div>
+    </div>
+
+    <div class="controls">
+        <button id="reset-btn">Neustart</button>
+    </div>
+</div>
+
+<script>
+    let selectedWord = null;
+    const cards = document.querySelectorAll('.number-card');
+    const zones = document.querySelectorAll('.drop-zone');
+    const resetBtn = document.getElementById('reset-btn');
+
+    // Klick-Logik für die Auswahl der Zahlwörter
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            // Aktuelle Auswahl hervorheben
+            cards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedWord = card.dataset.word;
+        });
+    });
+
+    // Klick-Logik für die Lückenfelder (Zuweisung & Sofort-Feedback)
+    zones.forEach(zone => {
+        zone.addEventListener('click', () => {
+            if (selectedWord) {
+                // Wort ins Feld schreiben
+                zone.textContent = selectedWord;
+                
+                // Sofort-Feedback durch Vergleich mit data-answer
+                if (selectedWord === zone.dataset.answer) {
+                    zone.className = 'drop-zone correct';
+                } else {
+                    zone.className = 'drop-zone wrong';
+                }
+
+                // Auswahl nach der Zuweisung wieder aufheben
+                selectedWord = null;
+                cards.forEach(c => c.classList.remove('selected'));
+            } else if (zone.textContent !== '') {
+                // Falls das Feld bereits gefüllt ist, wird es bei Klick (ohne neue Auswahl) geleert
+                zone.textContent = '';
+                zone.className = 'drop-zone';
+            }
+        });
+    });
+
+    // Neustart-Button: Alles auf Anfang setzen
+    resetBtn.addEventListener('click', () => {
+        zones.forEach(zone => {
+            zone.textContent = '';
+            zone.className = 'drop-zone';
+        });
+        cards.forEach(c => c.classList.remove('selected'));
+        selectedWord = null;
+    });
+</script>
+
+</body>
+</html>
