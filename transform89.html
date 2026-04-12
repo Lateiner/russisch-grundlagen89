@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Transformation der Fälle</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 { font-size: 1.4rem; color: var(--primary-color); margin-bottom: 20px; }
+
+        /* Aufgaben-Karte */
+        .transformation-card {
+            background: #eef2f7;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px solid var(--accent-color);
+        }
+
+        .base-phrase {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .instruction-text {
+            font-size: 1rem;
+            color: #d35400;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Auswahl-Buttons */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--primary-color);
+        }
+
+        .option-btn:hover {
+            border-color: var(--accent-color);
+            background: #f0f8ff;
+        }
+
+        /* Feedback-Farben */
+        .correct {
+            background-color: var(--success-color) !important;
+            border-color: var(--success-color) !important;
+            color: white !important;
+        }
+
+        .wrong {
+            background-color: var(--error-color) !important;
+            border-color: var(--error-color) !important;
+            color: white !important;
+        }
+
+        /* Steuerung */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .progress { font-size: 0.9rem; color: #777; }
+
+        #next-btn, #reset-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #next-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        @media (max-width: 480px) {
+            .base-phrase { font-size: 1.2rem; }
+            .option-btn { font-size: 1rem; padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Kasus-Transformation</h1>
+
+    <div id="game-ui">
+        <div class="transformation-card">
+            <span class="base-phrase" id="source-phrase">три маркера</span>
+            <span class="instruction-text" id="target-case">Dativ</span>
+        </div>
+
+        <div class="options-list" id="options-container">
+            <!-- Buttons werden hier eingefügt -->
+        </div>
+
+        <div class="controls">
+            <span class="progress" id="progress-text">Aufgabe 1 von 10</span>
+            <button id="next-btn" onclick="loadNextQuestion()" disabled>Weiter</button>
+        </div>
+    </div>
+
+    <div id="result-ui" style="display: none;">
+        <h2>Ergebnis</h2>
+        <p id="score-text" style="font-size: 1.2rem; margin-bottom: 20px;"></p>
+        <button id="reset-btn" onclick="initQuiz()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        { 
+            source: "три маркера", 
+            target: "Dativ", 
+            correct: "трем маркерам", 
+            wrong: ["трех маркеров", "тремя маркерами"] 
+        },
+        { 
+            source: "две книги", 
+            target: "Genitiv", 
+            correct: "двух книг", 
+            wrong: ["двум книгам", "двумя книгами"] 
+        },
+        { 
+            source: "четыре окна", 
+            target: "Instrumental", 
+            correct: "четырьмя окнами", 
+            wrong: ["четырем окнам", "четырех окон"] 
+        },
+        { 
+            source: "одна студентка", 
+            target: "Akkusativ", 
+            correct: "одну студентку", 
+            wrong: ["одной студентки", "одной студентке"] 
+        },
+        { 
+            source: "один студент", 
+            target: "Dativ", 
+            correct: "одному студенту", 
+            wrong: ["одного студента", "одним студентом"] 
+        },
+        { 
+            source: "три озера", 
+            target: "Präpositional", 
+            correct: "о трех озерах", 
+            wrong: ["о трех озеров", "трем озерам"] 
+        },
+        { 
+            source: "две подруги", 
+            target: "Instrumental", 
+            correct: "двумя подругами", 
+            wrong: ["двух подруг", "двум подругам"] 
+        },
+        { 
+            source: "четыре киоska", 
+            target: "Dativ", 
+            correct: "четырем киоскам", 
+            wrong: ["четырех киосков", "четырьмя киосками"] 
+        },
+        { 
+            source: "одна деревня", 
+            target: "Präpositional", 
+            correct: "в einer деревне", // Hinweis: Hier wird "одной" erwartet
+            correct: "в одной деревне",
+            wrong: ["в одну деревню", "в одна деревня"] 
+        },
+        { 
+            source: "один словарь", 
+            target: "Instrumental", 
+            correct: "одним словарем", 
+            wrong: ["одного словаря", "одному словарю"] 
+        }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let answered = false;
+
+    function initQuiz() {
+        currentIdx = 0;
+        score = 0;
+        quizData.sort(() => Math.random() - 0.5);
+        document.getElementById('game-ui').style.display = 'block';
+        document.getElementById('result-ui').style.display = 'none';
+        showQuestion();
+    }
+
+    function showQuestion() {
+        answered = false;
+        document.getElementById('next-btn').disabled = true;
+        const q = quizData[currentIdx];
+        
+        document.getElementById('source-phrase').textContent = q.source;
+        document.getElementById('target-case').textContent = q.target;
+        document.getElementById('progress-text').textContent = `Aufgabe ${currentIdx + 1} von ${quizData.length}`;
+
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        // Antwortmöglichkeiten mischen
+        const allOptions = [q.correct, ...q.wrong].sort(() => Math.random() - 0.5);
+
+        allOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.onclick = () => checkAnswer(btn, opt);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, choice) {
+        if (answered) return;
+        answered = true;
+        
+        const correct = quizData[currentIdx].correct;
+        const buttons = document.querySelectorAll('.option-btn');
+
+        buttons.forEach(b => {
+            if (b.textContent === correct) {
+                b.classList.add('correct');
+            }
+            if (b.textContent === choice && choice !== correct) {
+                b.classList.add('wrong');
+            }
+        });
+
+        if (choice === correct) score++;
+        document.getElementById('next-btn').disabled = false;
+    }
+
+    function loadNextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            showQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('result-ui').style.display = 'block';
+        document.getElementById('score-text').textContent = `Du hast ${score} von ${quizData.length} Transformationen korrekt gemeistert!`;
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>
