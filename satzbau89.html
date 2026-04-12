@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Satzbau-Spiel (10 Sätze)</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+            --tile-bg: #fff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 650px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .instruction-box {
+            text-align: center;
+            background: #eef2f7;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        .instruction-text {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        /* Bereich für den gebildeten Satz */
+        .sentence-display {
+            min-height: 70px;
+            border: 2px dashed #bbb;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            background-color: #fafafa;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        /* Bereich für die verfügbaren Kacheln */
+        .tile-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            padding: 20px;
+            background-color: #eee;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tile {
+            background: var(--tile-bg);
+            border: 2px solid #ccc;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tile:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .tile.selected {
+            opacity: 0.3;
+            pointer-events: none;
+            background: #ddd;
+        }
+
+        /* Feedback Farben */
+        .correct-sentence {
+            border-color: var(--success-color);
+            background-color: #e8f5e9;
+        }
+
+        .wrong-sentence {
+            border-color: var(--error-color);
+            background-color: #ffebee;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .progress {
+            font-weight: bold;
+            color: #777;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        #check-btn { background: var(--accent-color); color: white; }
+        #next-btn { background: var(--success-color); color: white; display: none; }
+        #reset-btn { background: #95a5a6; color: white; }
+
+        @media (max-width: 480px) {
+            .tile { padding: 8px 12px; font-size: 1rem; }
+            .container { padding: 15px; }
+            .controls { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Russischer Satzbau</h1>
+    
+    <div class="instruction-box">
+        <p class="instruction-text" id="targetSentence">Lade Übung...</p>
+    </div>
+
+    <!-- Hier landet der gebildete Satz -->
+    <div class="sentence-display" id="sentenceDisplay"></div>
+
+    <!-- Hier liegen die verfügbaren Wörter -->
+    <div class="tile-pool" id="tilePool"></div>
+
+    <div class="controls">
+        <span class="progress" id="progressText">Satz 1 von 10</span>
+        <div>
+            <button id="reset-btn" onclick="resetCurrentSentence()">Löschen</button>
+            <button id="check-btn" onclick="checkSentence()">Prüfen</button>
+            <button id="next-btn" onclick="loadNextSentence()">Weiter</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const sentences = [
+        { German: "Ich habe einen alten Wörterbuch.", words: ["У", "меня", "есть", "один", "старый", "словарь"] },
+        { German: "Im Zimmer steht ein großes Bett.", words: ["В", "комнате", "стоит", "одна", "большая", "кровать"] },
+        { German: "Dort stehen zwei blaue Fenster.", words: ["Там", "стоят", "два", "синих", "окна"] },
+        { German: "Sie hat zwei neue Freundinnen.", words: ["У", "неё", "есть", "две", "новые", "подруги"] },
+        { German: "Hier gibt es drei große Bäume.", words: ["Здесь", "есть", "три", "больших", "дерева"] },
+        { German: "Er hat vier lange Bücher.", words: ["У", "него", "есть", "четыре", "длинные", "книги"] },
+        { German: "Ich sehe ein hohes Gebäude.", words: ["Я", "вижу", "одно", "высокое", "здание"] },
+        { German: "Im Schrank liegt eine neue Hose.", words: ["В", "шкафу", "лежат", "одни", "новые", "брюки"] },
+        { German: "Dort stehen zwei hohe Gebäude.", words: ["Там", "стоят", "два", "высоких", "здания"] },
+        { German: "Wir haben drei weiße Kater.", words: ["У", "нас", "есть", "три", "белых", "кота"] }
+    ];
+
+    let currentIdx = 0;
+    let userWords = [];
+
+    function initGame() {
+        loadSentence();
+    }
+
+    function loadSentence() {
+        const data = sentences[currentIdx];
+        userWords = [];
+        const display = document.getElementById('sentenceDisplay');
+        display.innerHTML = "";
+        display.classList.remove('correct-sentence', 'wrong-sentence');
+        
+        document.getElementById('targetSentence').innerHTML = `Bilde den Satz: „<strong>${data.German}</strong>“`;
+        document.getElementById('progressText').textContent = `Satz ${currentIdx + 1} von ${sentences.length}`;
+        
+        document.getElementById('check-btn').style.display = "inline-block";
+        document.getElementById('next-btn').style.display = "none";
+
+        // Wörter mischen
+        const shuffled = [...data.words].sort(() => Math.random() - 0.5);
+        const pool = document.getElementById('tilePool');
+        pool.innerHTML = "";
+
+        shuffled.forEach((word, i) => {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.textContent = word;
+            tile.id = `tile-${i}`;
+            tile.onclick = () => {
+                if (!tile.classList.contains('selected')) {
+                    addWord(word, tile.id);
+                }
+            };
+            pool.appendChild(tile);
+        });
+    }
+
+    function addWord(word, tileId) {
+        const sourceTile = document.getElementById(tileId);
+        sourceTile.classList.add('selected');
+        userWords.push(word);
+
+        const display = document.getElementById('sentenceDisplay');
+        const newTile = document.createElement('div');
+        newTile.className = 'tile';
+        newTile.textContent = word;
+        // Klick auf Wort im Display entfernt es wieder
+        newTile.onclick = () => removeWord(word, tileId, newTile);
+        display.appendChild(newTile);
+    }
+
+    function removeWord(word, tileId, displayTile) {
+        // Nur das letzte Wort kann entfernt werden, um die Reihenfolge beizubehalten (einfachere Logik)
+        if (userWords[userWords.length - 1] === word) {
+            userWords.pop();
+            displayTile.remove();
+            document.getElementById(tileId).classList.remove('selected');
+        }
+    }
+
+    function resetCurrentSentence() {
+        loadSentence();
+    }
+
+    function checkSentence() {
+        const correctSequence = sentences[currentIdx].words.join(' ');
+        const userSequence = userWords.join(' ');
+        const display = document.getElementById('sentenceDisplay');
+
+        if (userSequence === correctSequence) {
+            display.classList.add('correct-sentence');
+            document.getElementById('check-btn').style.display = "none";
+            document.getElementById('next-btn').style.display = "inline-block";
+        } else {
+            display.classList.add('wrong-sentence');
+            setTimeout(() => display.classList.remove('wrong-sentence'), 1000);
+        }
+    }
+
+    function loadNextSentence() {
+        currentIdx++;
+        if (currentIdx < sentences.length) {
+            loadSentence();
+        } else {
+            document.getElementById('targetSentence').innerHTML = "<strong>Gratulation! Alle Sätze sind korrekt!</strong>";
+            document.getElementById('tilePool').innerHTML = "";
+            document.getElementById('sentenceDisplay').innerHTML = "🎉";
+            document.getElementById('next-btn').style.display = "none";
+            document.getElementById('check-btn').style.display = "none";
+            document.getElementById('reset-btn').textContent = "Neustart";
+            document.getElementById('reset-btn').onclick = () => { location.reload(); };
+        }
+    }
+
+    window.onload = initGame;
+</script>
+
+</body>
+</html>
