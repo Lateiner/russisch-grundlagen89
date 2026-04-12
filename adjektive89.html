@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Adjektivendungen Matrix</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .rule-box {
+            background-color: #eef2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        /* Matrix Styling */
+        .matrix {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .matrix-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            padding: 10px;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .matrix-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .phrase {
+            font-size: 1.1rem;
+            padding-left: 10px;
+        }
+
+        .option-btn {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            padding: 10px;
+            margin: 0 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .option-btn:hover {
+            border-color: var(--accent-color);
+            background-color: #f0f7ff;
+        }
+
+        /* Feedback Zustände */
+        .correct {
+            background-color: var(--success-color) !important;
+            border-color: var(--success-color) !important;
+            color: white !important;
+        }
+
+        .wrong {
+            background-color: var(--error-color) !important;
+            border-color: var(--error-color) !important;
+            color: white !important;
+        }
+
+        .reset-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #reset-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Responsive Anpassung */
+        @media (max-width: 600px) {
+            .matrix-header { display: none; }
+            .matrix-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                text-align: center;
+                padding: 15px;
+            }
+            .phrase { padding-bottom: 10px; font-weight: bold; }
+            .options-wrapper {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Adjektiv-Endungen nach 2, 3, 4</h1>
+    
+    <div class="rule-box">
+        <strong>Regel:</strong> Nach den Zahlen 2, 3, 4 im Nominativ stehen Adjektive bei 
+        <span style="color:var(--accent-color)">Maskulinum/Neutrum</span> im <strong>Genitiv Plural</strong> (-ых/-их) 
+        und bei <span style="color:var(--accent-color)">Femininum</span> im <strong>Nominativ Plural</strong> (-ые/-ие).
+    </div>
+
+    <div class="matrix-header">
+        <div>Phrase</div>
+        <div>-ых / -их</div>
+        <div>-ые / -ие</div>
+    </div>
+
+    <div id="matrix-body">
+        <!-- Zeilen werden per JS eingefügt -->
+    </div>
+
+    <div class="reset-container">
+        <button id="reset-btn" onclick="initExercise()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        { phrase: "три хорош... студента", type: "mn", answer: "ich" },
+        { phrase: "две нов... подруги", type: "f", answer: "ie" },
+        { phrase: "два красив... здания", type: "mn", answer: "ich" },
+        { phrase: "четыре длинн... книги", type: "f", answer: "ie" },
+        { phrase: "три умн... человека", type: "mn", answer: "ich" },
+        { phrase: "две больш... квартиры", type: "f", answer: "ie" },
+        { phrase: "два нов... словаря", type: "mn", answer: "ich" },
+        { phrase: "три интересн... газеты", type: "f", answer: "ie" }
+    ];
+
+    function initExercise() {
+        const body = document.getElementById('matrix-body');
+        body.innerHTML = '';
+
+        // Daten mischen
+        const shuffled = [...quizData].sort(() => Math.random() - 0.5);
+
+        shuffled.forEach((item, index) => {
+            const row = document.createElement('div');
+            row.className = 'matrix-row';
+
+            const phraseDiv = document.createElement('div');
+            phraseDiv.className = 'phrase';
+            phraseDiv.textContent = item.phrase;
+
+            const btnMN = document.createElement('button');
+            btnMN.className = 'option-btn';
+            btnMN.textContent = '-ых / -их';
+            btnMN.onclick = () => check(btnMN, btnF, 'ich', item.answer);
+
+            const btnF = document.createElement('button');
+            btnF.className = 'option-btn';
+            btnF.textContent = '-ые / -ие';
+            btnF.onclick = () => check(btnF, btnMN, 'ie', item.answer);
+
+            // Container für Mobile (damit sie nebeneinander stehen)
+            const wrapper = document.createElement('div');
+            wrapper.className = 'options-wrapper';
+            
+            // Auf Desktop direkt in die Row, auf Mobile in den Wrapper
+            if (window.innerWidth > 600) {
+                row.appendChild(phraseDiv);
+                row.appendChild(btnMN);
+                row.appendChild(btnF);
+            } else {
+                row.appendChild(phraseDiv);
+                const wrap = document.createElement('div');
+                wrap.className = 'options-wrapper';
+                wrap.appendChild(btnMN);
+                wrap.appendChild(btnF);
+                row.appendChild(wrap);
+            }
+
+            body.appendChild(row);
+        });
+    }
+
+    function check(clickedBtn, otherBtn, choice, correct) {
+        // Falls schon eine Entscheidung getroffen wurde, nichts tun
+        if (clickedBtn.classList.contains('correct') || clickedBtn.classList.contains('wrong') || 
+            otherBtn.classList.contains('correct') || otherBtn.classList.contains('wrong')) {
+            return;
+        }
+
+        if (choice === correct) {
+            clickedBtn.classList.add('correct');
+        } else {
+            clickedBtn.classList.add('wrong');
+            otherBtn.classList.add('correct'); // Zeige richtige Lösung
+        }
+    }
+
+    // Initialisierung und Resize-Handling
+    window.addEventListener('resize', initExercise);
+    initExercise();
+</script>
+
+</body>
+</html>
