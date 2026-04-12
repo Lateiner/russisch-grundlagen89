@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paar-Suche: Adjektiv-Regel</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --bg-color: #f4f7f6;
+            /* Farben für die 8 Paare */
+            --p0: #e74c3c; --p1: #3498db; --p2: #2ecc71; --p3: #f1c40f;
+            --p4: #9b59b6; --p5: #1abc9c; --p6: #e67e22; --p7: #ff7f50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h1 { text-align: center; font-size: 1.4rem; color: var(--primary-color); margin: 0 0 10px 0; }
+        .instruction { text-align: center; font-size: 0.95rem; color: #555; margin-bottom: 20px; }
+
+        .matching-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .column { display: flex; flex-direction: column; gap: 10px; }
+
+        .tile {
+            background: #fff;
+            border: 2px solid #ddd;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.4s ease;
+            user-select: none;
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Auswahl-Effekte */
+        .selected { border-color: var(--primary-color); background-color: #eee; transform: scale(1.02); }
+
+        /* Farbklassen für Paare (werden bei Match oder Lösung aktiv) */
+        .color-0 { background-color: var(--p0) !important; color: white; border-color: var(--p0); }
+        .color-1 { background-color: var(--p1) !important; color: white; border-color: var(--p1); }
+        .color-2 { background-color: var(--p2) !important; color: white; border-color: var(--p2); }
+        .color-3 { background-color: var(--p3) !important; color: white; border-color: var(--p3); }
+        .color-4 { background-color: var(--p4) !important; color: white; border-color: var(--p4); }
+        .color-5 { background-color: var(--p5) !important; color: white; border-color: var(--p5); }
+        .color-6 { background-color: var(--p6) !important; color: white; border-color: var(--p6); }
+        .color-7 { background-color: var(--p7) !important; color: white; border-color: var(--p7); }
+
+        /* Verschwinden-Effekt */
+        .hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .controls { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        #solution-btn { background: #f39c12; color: white; }
+        #reset-btn { background: var(--primary-color); color: white; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 500px) {
+            .matching-grid { grid-template-columns: 1fr; }
+            .instruction { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Paar-Suche</h1>
+    <p class="instruction">Klicke ein Adjektiv (links) und das passende Substantiv (rechts) an.</p>
+
+    <div class="matching-grid">
+        <div class="column" id="adjCol"></div>
+        <div class="column" id="nounCol"></div>
+    </div>
+
+    <div class="controls">
+        <button id="solution-btn" onclick="showSolution()">Lösung anzeigen</button>
+        <button id="reset-btn" onclick="initExercise()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const pairs = [
+        { a: "три умных", n: "студента", id: 0 },
+        { a: "три умные", n: "студентки", id: 1 },
+        { a: "два больших", n: "здания", id: 2 },
+        { a: "две большие", n: "комнаты", id: 3 },
+        { a: "четыре длинных", n: "словаря", id: 4 },
+        { a: "четыре длинные", n: "газеты", id: 5 },
+        { a: "два старых", n: "стола", id: 6 },
+        { a: "две старые", n: "кровати", id: 7 }
+    ];
+
+    let selectedAdj = null;
+    let selectedNoun = null;
+    let lockBoard = false;
+
+    function initExercise() {
+        const adjCol = document.getElementById('adjCol');
+        const nounCol = document.getElementById('nounCol');
+        adjCol.innerHTML = ''; nounCol.innerHTML = '';
+        selectedAdj = null; selectedNoun = null; lockBoard = false;
+        document.getElementById('solution-btn').disabled = false;
+
+        const shuffledAdj = [...pairs].sort(() => Math.random() - 0.5);
+        const shuffledNoun = [...pairs].sort(() => Math.random() - 0.5);
+
+        shuffledAdj.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'tile'; div.textContent = p.a;
+            div.dataset.id = p.id; div.dataset.type = 'adj';
+            div.onclick = () => selectTile(div);
+            adjCol.appendChild(div);
+        });
+
+        shuffledNoun.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'tile'; div.textContent = p.n;
+            div.dataset.id = p.id; div.dataset.type = 'noun';
+            div.onclick = () => selectTile(div);
+            nounCol.appendChild(div);
+        });
+    }
+
+    function selectTile(el) {
+        if (lockBoard || el.classList.contains('hidden')) return;
+
+        if (el.dataset.type === 'adj') {
+            document.querySelectorAll('#adjCol .tile').forEach(t => t.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedAdj = el;
+        } else {
+            document.querySelectorAll('#nounCol .tile').forEach(t => t.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedNoun = el;
+        }
+
+        if (selectedAdj && selectedNoun) checkMatch();
+    }
+
+    function checkMatch() {
+        if (selectedAdj.dataset.id === selectedNoun.dataset.id) {
+            const id = selectedAdj.dataset.id;
+            const a = selectedAdj; const n = selectedNoun;
+            a.classList.add(`color-${id}`); n.classList.add(`color-${id}`);
+            
+            lockBoard = true;
+            setTimeout(() => {
+                a.classList.add('hidden'); n.classList.add('hidden');
+                lockBoard = false;
+            }, 800);
+        } else {
+            const a = selectedAdj; const n = selectedNoun;
+            lockBoard = true;
+            setTimeout(() => {
+                a.classList.remove('selected'); n.classList.remove('selected');
+                lockBoard = false;
+            }, 500);
+        }
+        selectedAdj = null; selectedNoun = null;
+    }
+
+    function showSolution() {
+        if (lockBoard) return;
+        lockBoard = true;
+        document.getElementById('solution-btn').disabled = true;
+
+        const allTiles = document.querySelectorAll('.tile:not(.hidden)');
+        allTiles.forEach(t => {
+            t.classList.add(`color-${t.dataset.id}`);
+        });
+
+        setTimeout(() => {
+            allTiles.forEach(t => {
+                t.classList.remove(`color-${t.dataset.id}`);
+            });
+            lockBoard = false;
+            document.getElementById('solution-btn').disabled = false;
+        }, 3000);
+    }
+
+    initExercise();
+</script>
+
+</body>
+</html>
