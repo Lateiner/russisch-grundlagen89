@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Akkusativ Belebtheit</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-unbelebt: #3498db;
+            --accent-belebt: #e67e22;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 { text-align: center; font-size: 1.4rem; color: var(--primary-color); margin-bottom: 10px; }
+        .instruction { text-align: center; font-size: 0.95rem; color: #555; margin-bottom: 25px; }
+
+        /* Die zwei Ziel-Kategorien */
+        .category-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .category-box {
+            border: 3px dashed #ccc;
+            border-radius: 12px;
+            padding: 15px;
+            min-height: 150px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .category-box h2 { font-size: 1.1rem; margin-bottom: 5px; }
+        .category-box p { font-size: 0.8rem; color: #777; margin-top: 0; }
+
+        .category-box.unbelebt { border-color: var(--accent-unbelebt); }
+        .category-box.belebt { border-color: var(--accent-belebt); }
+
+        .category-box.hover { background: #f0f4f8; transform: scale(1.02); }
+
+        /* Wort-Pool */
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 100px;
+        }
+
+        .phrase-card {
+            background: #fff;
+            border: 2px solid #ddd;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .phrase-card.selected {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* Statusfarben */
+        .phrase-card.correct {
+            background-color: var(--success-color) !important;
+            border-color: var(--success-color) !important;
+            color: white !important;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .phrase-card.wrong {
+            background-color: var(--error-color) !important;
+            border-color: var(--error-color) !important;
+            color: white !important;
+        }
+
+        .controls { text-align: center; margin-top: 25px; }
+        #reset-btn { background: var(--primary-color); color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        @media (max-width: 600px) {
+            .category-container { grid-template-columns: 1fr; }
+            .category-box { min-height: 100px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Akkusativ: Belebt oder Unbelebt?</h1>
+    <p class="instruction">
+        Wähle eine Phrase aus dem Pool und klicke dann auf die richtige Kategorie.
+    </p>
+
+    <div class="category-container">
+        <!-- Kategorie 1: Unbelebt -->
+        <div class="category-box unbelebt" id="cat-unbelebt" onclick="dropToCategory('unbelebt')">
+            <h2 style="color: var(--accent-unbelebt);">Akk. = Nom.</h2>
+            <p>(Unbelebt / Maskulin & Plural)</p>
+            <div class="items-list"></div>
+        </div>
+
+        <!-- Kategorie 2: Belebt -->
+        <div class="category-box belebt" id="cat-belebt" onclick="dropToCategory('belebt')">
+            <h2 style="color: var(--accent-belebt);">Akk. = Gen.</h2>
+            <p>(Belebt / Maskulin & Plural)</p>
+            <div class="items-list"></div>
+        </div>
+    </div>
+
+    <div class="word-pool" id="wordPool">
+        <!-- JS füllt die Phrasen -->
+    </div>
+
+    <div class="controls">
+        <button id="reset-btn" onclick="initExercise()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const phrases = [
+        { text: "один стул", type: "unbelebt" },
+        { text: "одного кота", type: "belebt" },
+        { text: "два здания", type: "unbelebt" },
+        { text: "двух братьев", type: "belebt" },
+        { text: "три фильма", type: "unbelebt" },
+        { text: "трех врачей", type: "belebt" },
+        { text: "четыре словаря", type: "unbelebt" },
+        { text: "четырех поэтов", type: "belebt" },
+        { text: "одни очки", type: "unbelebt" },
+        { text: "одних людей", type: "belebt" }
+    ];
+
+    let selectedElement = null;
+
+    function initExercise() {
+        const pool = document.getElementById('wordPool');
+        pool.innerHTML = '';
+        selectedElement = null;
+
+        // Phrasen mischen
+        const shuffled = [...phrases].sort(() => Math.random() - 0.5);
+
+        shuffled.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'phrase-card';
+            div.textContent = item.text;
+            div.dataset.type = item.type;
+            div.onclick = (e) => {
+                e.stopPropagation();
+                selectPhrase(div);
+            };
+            pool.appendChild(div);
+        });
+
+        // Kategorien leeren
+        document.querySelectorAll('.items-list').forEach(list => list.innerHTML = '');
+    }
+
+    function selectPhrase(el) {
+        if (el.classList.contains('correct')) return;
+        
+        document.querySelectorAll('.phrase-card').forEach(p => p.classList.remove('selected', 'wrong'));
+        el.classList.add('selected');
+        selectedElement = el;
+    }
+
+    function dropToCategory(categoryType) {
+        if (!selectedElement) {
+            alert("Wähle zuerst eine Phrase aus!");
+            return;
+        }
+
+        if (selectedElement.dataset.type === categoryType) {
+            // Richtig
+            selectedElement.classList.remove('selected');
+            selectedElement.classList.add('correct');
+            selectedElement = null;
+        } else {
+            // Falsch
+            selectedElement.classList.add('wrong');
+            setTimeout(() => {
+                if (selectedElement) selectedElement.classList.remove('wrong');
+            }, 600);
+        }
+    }
+
+    // Initialisierung
+    initExercise();
+</script>
+
+</body>
+</html>
