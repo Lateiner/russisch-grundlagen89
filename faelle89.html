@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Fall-Bestimmung</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 { font-size: 1.4rem; color: var(--primary-color); margin-bottom: 20px; }
+
+        /* Phrasen-Anzeige */
+        .question-card {
+            background: #f0f4f8;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px solid #d1d9e6;
+        }
+
+        .phrase-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .context-text {
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Buttons Gitter */
+        .case-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .case-btn {
+            padding: 15px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--primary-color);
+        }
+
+        .case-btn:hover {
+            border-color: var(--accent-color);
+            background: #f9fbff;
+        }
+
+        /* Feedback-Farben */
+        .correct {
+            background-color: var(--success-color) !important;
+            border-color: var(--success-color) !important;
+            color: white !important;
+        }
+
+        .wrong {
+            background-color: var(--error-color) !important;
+            border-color: var(--error-color) !important;
+            color: white !important;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .progress { font-size: 0.9rem; color: #777; }
+
+        #next-btn, #reset-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #next-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* Responsive */
+        @media (max-width: 400px) {
+            .case-grid { grid-template-columns: 1fr; }
+            .phrase-text { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="quiz-container">
+    <h1>Welcher Fall ist das?</h1>
+
+    <div id="game-ui">
+        <div class="question-card">
+            <span class="phrase-text" id="current-phrase">...</span>
+            <span class="context-text" id="current-context">...</span>
+        </div>
+
+        <div class="case-grid" id="button-grid">
+            <button class="case-btn" onclick="checkAnswer('Genitiv')">Genitiv</button>
+            <button class="case-btn" onclick="checkAnswer('Dativ')">Dativ</button>
+            <button class="case-btn" onclick="checkAnswer('Akkusativ')">Akkusativ</button>
+            <button class="case-btn" onclick="checkAnswer('Instrumental')">Instrumental</button>
+            <button class="case-btn" onclick="checkAnswer('Präpositional')">Präpositional</button>
+        </div>
+
+        <div class="controls">
+            <span class="progress" id="progress-text">Frage 1 von 15</span>
+            <button id="next-btn" onclick="loadNextQuestion()" disabled>Weiter</button>
+        </div>
+    </div>
+
+    <div id="result-ui" style="display: none;">
+        <h2>Ergebnis</h2>
+        <p id="score-text"></p>
+        <button id="reset-btn" onclick="initQuiz()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        { phrase: "об одном случае", context: "Erzähle mir von einem Vorfall.", case: "Präpositional" },
+        { phrase: "к одному другу", context: "Ich gehe zu einem Freund.", case: "Dativ" },
+        { phrase: "без одного студента", context: "Ohne einen Studenten.", case: "Genitiv" },
+        { phrase: "с одним художником", context: "Mit einem Maler.", case: "Instrumental" },
+        { phrase: "в einer деревне", context: "In einem Dorf.", case: "Präpositional" },
+        { phrase: "двух студентов", context: "Ich sehe zwei Studenten (belebt).", case: "Akkusativ" },
+        { phrase: "двум подругам", context: "Ich schenke zwei Freundinnen...", case: "Dativ" },
+        { phrase: "двумя зданиями", context: "Hinter zwei Gebäuden.", case: "Instrumental" },
+        { phrase: "о двух стульях", context: "Über zwei Stühle.", case: "Präpositional" },
+        { phrase: "трёх окон", context: "In der Nähe von drei Fenstern.", case: "Genitiv" },
+        { phrase: "тремя видами", context: "Mit drei Arten...", case: "Instrumental" },
+        { phrase: "к четырём киоскам", context: "Zu vier Kiosken.", case: "Dativ" },
+        { phrase: "четырёх упражнений", context: "Hier fehlen vier Übungen.", case: "Genitiv" },
+        { phrase: "о четырёх рассказах", context: "Über vier Erzählungen.", case: "Präpositional" },
+        { phrase: "одну студентку", context: "Ich kenne eine Studentin.", case: "Akkusativ" }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let answered = false;
+
+    function initQuiz() {
+        currentIdx = 0;
+        score = 0;
+        quizData.sort(() => Math.random() - 0.5);
+        document.getElementById('game-ui').style.display = 'block';
+        document.getElementById('result-ui').style.display = 'none';
+        showQuestion();
+    }
+
+    function showQuestion() {
+        answered = false;
+        document.getElementById('next-btn').disabled = true;
+        const q = quizData[currentIdx];
+        
+        document.getElementById('current-phrase').textContent = q.phrase;
+        document.getElementById('current-context').textContent = q.context;
+        document.getElementById('progress-text').textContent = `Frage ${currentIdx + 1} von ${quizData.length}`;
+
+        const buttons = document.querySelectorAll('.case-btn');
+        buttons.forEach(btn => btn.className = 'case-btn');
+    }
+
+    function checkAnswer(choice) {
+        if (answered) return;
+        answered = true;
+        
+        const correctCase = quizData[currentIdx].case;
+        const buttons = document.querySelectorAll('.case-btn');
+
+        buttons.forEach(btn => {
+            if (btn.textContent === correctCase) {
+                btn.classList.add('correct');
+            }
+            if (btn.textContent === choice && choice !== correctCase) {
+                btn.classList.add('wrong');
+            }
+        });
+
+        if (choice === correctCase) score++;
+        document.getElementById('next-btn').disabled = false;
+    }
+
+    function loadNextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            showQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('result-ui').style.display = 'block';
+        document.getElementById('score-text').textContent = `Du hast ${score} von ${quizData.length} Fällen korrekt bestimmt!`;
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>
