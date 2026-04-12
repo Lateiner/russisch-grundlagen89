@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Kategorisierung два/две</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-blue: #3498db;
+            --accent-pink: #9b59b6;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .instruction {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        /* Die Körbe (Kategorien) */
+        .baskets-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .basket {
+            flex: 1;
+            height: 120px;
+            border: 3px solid #ddd;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fff;
+            user-select: none;
+        }
+
+        .basket[data-category="два"] { border-color: var(--accent-blue); }
+        .basket[data-category="две"] { border-color: var(--accent-pink); }
+
+        .basket:hover { transform: translateY(-5px); background: #f0f8ff; }
+
+        .basket-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .basket-info {
+            font-size: 0.8rem;
+            color: #777;
+            text-transform: uppercase;
+        }
+
+        /* Wort-Pool */
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            min-height: 100px;
+        }
+
+        .word-item {
+            padding: 10px 18px;
+            background: white;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .word-item.selected {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Feedback-Zustände */
+        .word-item.correct {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+            pointer-events: none; /* Nicht mehr anklickbar */
+        }
+
+        .word-item.wrong {
+            background-color: var(--error-color);
+            border-color: var(--error-color);
+            color: white;
+        }
+
+        .controls {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        #reset-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .baskets-container { flex-direction: column; }
+            .basket { height: 100px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Kategorisierung: два oder две?</h1>
+    <p class="instruction">
+        Wähle ein Wort aus der Liste und klicke dann auf den passenden Korb.
+    </p>
+
+    <!-- Die Ziel-Körbe -->
+    <div class="baskets-container">
+        <div class="basket" data-category="два" onclick="assignToBasket('два')">
+            <span class="basket-title" style="color: var(--accent-blue);">два</span>
+            <span class="basket-info">m / n</span>
+        </div>
+        <div class="basket" data-category="две" onclick="assignToBasket('две')">
+            <span class="basket-title" style="color: var(--accent-pink);">две</span>
+            <span class="basket-info">f</span>
+        </div>
+    </div>
+
+    <!-- Die Wörter -->
+    <div class="word-pool" id="wordPool">
+        <!-- Wörter werden per JS geladen -->
+    </div>
+
+    <div class="controls">
+        <button id="reset-btn" onclick="initExercise()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const nouns = [
+        { word: 'здание', genus: 'два' },  // n
+        { word: 'стол', genus: 'два' },    // m
+        { word: 'подруга', genus: 'две' }, // f
+        { word: 'книга', genus: 'две' },   // f
+        { word: 'слово', genus: 'два' },   // n
+        { word: 'студентка', genus: 'две' }, // f
+        { word: 'словарь', genus: 'два' },  // m
+        { word: 'газета', genus: 'две' }    // f
+    ];
+
+    let selectedElement = null;
+
+    // Übung initialisieren / Wörter mischen
+    function initExercise() {
+        const pool = document.getElementById('wordPool');
+        pool.innerHTML = '';
+        selectedElement = null;
+
+        // Wörter mischen
+        const shuffled = [...nouns].sort(() => Math.random() - 0.5);
+
+        shuffled.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'word-item';
+            div.textContent = item.word;
+            div.dataset.correctGenus = item.genus;
+            div.onclick = () => selectWord(div);
+            pool.appendChild(div);
+        });
+    }
+
+    // Ein Wort aus dem Pool auswählen
+    function selectWord(element) {
+        // Vorherige Auswahl entfernen
+        const allItems = document.querySelectorAll('.word-item');
+        allItems.forEach(i => i.classList.remove('selected', 'wrong'));
+        
+        element.classList.add('selected');
+        selectedElement = element;
+    }
+
+    // Dem Korb zuweisen & Prüfen
+    function assignToBasket(category) {
+        if (!selectedElement) {
+            alert('Wähle zuerst ein Wort aus!');
+            return;
+        }
+
+        const correctCategory = selectedElement.dataset.correctGenus;
+
+        if (category === correctCategory) {
+            // Richtig
+            selectedElement.classList.remove('selected', 'wrong');
+            selectedElement.classList.add('correct');
+            selectedElement.innerHTML += ' ✓'; // Häkchen hinzufügen
+            selectedElement = null; // Auswahl zurücksetzen
+        } else {
+            // Falsch
+            selectedElement.classList.remove('selected');
+            selectedElement.classList.add('wrong');
+            // Wort bleibt markiert (rot), Schüler kann neu wählen
+        }
+    }
+
+    // Start
+    initExercise();
+</script>
+
+</body>
+</html>
