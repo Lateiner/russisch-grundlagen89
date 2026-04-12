@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Quiz: Richtig oder Falsch?</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 { font-size: 1.4rem; color: var(--primary-color); margin-bottom: 25px; }
+
+        /* Quiz-Karte */
+        .quiz-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 30px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .sentence {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .explanation {
+            font-size: 0.95rem;
+            color: var(--error-color);
+            font-weight: bold;
+            margin-top: 10px;
+            display: none; /* Wird bei falscher Antwort eingeblendet */
+        }
+
+        /* Buttons */
+        .btn-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .choice-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .btn-true { background-color: var(--success-color); }
+        .btn-false { background-color: var(--error-color); }
+
+        .choice-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .choice-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* Steuerung */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .progress { font-size: 0.9rem; color: #777; }
+
+        #next-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #next-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        @media (max-width: 400px) {
+            .sentence { font-size: 1.2rem; }
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Grammatik-Check</h1>
+    <p style="color: #666; margin-bottom: 20px;">Ist dieser Satz im Akkusativ korrekt?</p>
+
+    <div id="game-ui">
+        <div class="quiz-card" id="card">
+            <div class="sentence" id="sentence-text">Я вижу три студенta</div>
+            <div class="explanation" id="explanation-text">Falsch: Belebtes Objekt! (Akk = Gen)</div>
+        </div>
+
+        <div class="btn-container">
+            <button class="choice-btn btn-true" onclick="handleChoice(true)">Richtig</button>
+            <button class="choice-btn btn-false" onclick="handleChoice(false)">Falsch</button>
+        </div>
+
+        <div class="footer">
+            <div class="progress" id="progress">Frage 1 von 8</div>
+            <button id="next-btn" onclick="nextQuestion()" disabled>Weiter</button>
+        </div>
+    </div>
+
+    <div id="result-ui" style="display: none;">
+        <h2>Ergebnis</h2>
+        <p id="score-text" style="font-size: 1.2rem; margin-bottom: 20px;"></p>
+        <button id="next-btn" style="width: 100%;" onclick="location.reload()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { 
+            s: "Я вижу три студента", 
+            isCorrect: false, 
+            info: "Falsch: Studenten sind belebt. Es muss heißen: «трёх студентов»." 
+        },
+        { 
+            s: "Я вижу три стола", 
+            isCorrect: true, 
+            info: "Korrekt: Tische sind unbelebt. (Akk = Nom)" 
+        },
+        { 
+            s: "Я вижу два здания", 
+            isCorrect: true, 
+            info: "Korrekt: Gebäude sind unbelebt. (Akk = Nom)" 
+        },
+        { 
+            s: "Я вижу два друга", 
+            isCorrect: false, 
+            info: "Falsch: Freunde sind belebt. Es muss heißen: «двух друзей»." 
+        },
+        { 
+            s: "Я вижу одну девушку", 
+            isCorrect: true, 
+            info: "Korrekt: Feminin Singular folgt eigenen Regeln." 
+        },
+        { 
+            s: "Я вижу одного кота", 
+            isCorrect: true, 
+            info: "Korrekt: Kater ist belebt. (Akk = Gen)" 
+        },
+        { 
+            s: "Я вижу четыре книги", 
+            isCorrect: true, 
+            info: "Korrekt: Bücher sind unbelebt. (Akk = Nom)" 
+        },
+        { 
+            s: "Я вижу четыре лошади", 
+            isCorrect: false, 
+            info: "Falsch: Pferde sind belebt. Es muss heißen: «четырёх лошадей»." 
+        }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let answered = false;
+
+    function showQuestion() {
+        answered = false;
+        const q = questions[currentIdx];
+        document.getElementById('sentence-text').textContent = q.s;
+        document.getElementById('explanation-text').style.display = 'none';
+        document.getElementById('card').style.borderColor = '#e9ecef';
+        document.getElementById('progress').textContent = `Frage ${currentIdx + 1} von ${questions.length}`;
+        document.getElementById('next-btn').disabled = true;
+        
+        const btns = document.querySelectorAll('.choice-btn');
+        btns.forEach(b => b.disabled = false);
+    }
+
+    function handleChoice(userChoice) {
+        if (answered) return;
+        answered = true;
+
+        const q = questions[currentIdx];
+        const card = document.getElementById('card');
+        const explanation = document.getElementById('explanation-text');
+        const btns = document.querySelectorAll('.choice-btn');
+        
+        btns.forEach(b => b.disabled = true);
+
+        if (userChoice === q.isCorrect) {
+            score++;
+            card.style.borderColor = 'var(--success-color)';
+        } else {
+            card.style.borderColor = 'var(--error-color)';
+        }
+
+        explanation.textContent = q.info;
+        explanation.style.display = 'block';
+        document.getElementById('next-btn').disabled = false;
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < questions.length) {
+            showQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('result-ui').style.display = 'block';
+        document.getElementById('score-text').textContent = `Du hast ${score} von ${questions.length} Punkten erreicht.`;
+    }
+
+    // Start
+    showQuestion();
+</script>
+
+</body>
+</html>
