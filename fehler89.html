@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Fehlersuche</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .instruction {
+            text-align: center;
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 25px;
+            padding: 10px;
+            background: #fff9c4;
+            border-radius: 8px;
+            border-left: 5px solid #fbc02d;
+        }
+
+        .phrase-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .phrase-item {
+            padding: 15px;
+            background: #fff;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .phrase-item:hover {
+            border-color: var(--accent-color);
+            background-color: #f0f7ff;
+        }
+
+        /* Feedback-Zustände */
+        /* Der User hat einen Fehler korrekt gefunden */
+        .found-error {
+            background-color: var(--success-color) !important;
+            color: white;
+            border-color: var(--success-color) !important;
+        }
+
+        /* Der User hat eine eigentlich richtige Phrase als falsch markiert */
+        .mistake {
+            background-color: var(--error-color) !important;
+            color: white;
+            border-color: var(--error-color) !important;
+        }
+
+        .stats {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .counter {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        #reset-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .phrase-list {
+                grid-template-columns: 1fr;
+            }
+            h1 { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Grammatik-Detektiv</h1>
+    <p class="instruction">
+        Finde die <strong>5 Fehler</strong>! Klicke alle Phrasen an, die grammatikalisch <strong>falsch</strong> sind.
+    </p>
+
+    <div class="phrase-list" id="phraseList">
+        <!-- Phrasen werden per JS geladen -->
+    </div>
+
+    <div class="stats">
+        <div class="counter" id="counter">Gefundene Fehler: 0 / 5</div>
+        <button id="reset-btn" onclick="initExercise()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    // Daten: Phrasen und ob sie einen Fehler enthalten (isError)
+    const data = [
+        { text: "три студента", isError: false },
+        { text: "два книги", isError: true },    // Fehler: zwei (f) ist "две"
+        { text: "четыре окна", isError: false },
+        { text: "три столов", isError: true },    // Fehler: Genitiv Singular nötig (стола)
+        { text: "две подруги", isError: false },
+        { text: "два здания", isError: false },
+        { text: "две окна", isError: true },      // Fehler: Fenster (n) ist "два"
+        { text: "четыре кровать", isError: true },// Fehler: Genitiv Singular nötig (кровати)
+        { text: "три журнала", isError: false },
+        { text: "два слова", isError: false },
+        { text: "две карандаша", isError: true }, // Fehler: Bleistift (m) ist "два"
+        { text: "четыре газеты", isError: false }
+    ];
+
+    let foundCount = 0;
+    const totalErrors = data.filter(item => item.isError).length;
+
+    function initExercise() {
+        foundCount = 0;
+        updateCounter();
+        const list = document.getElementById('phraseList');
+        list.innerHTML = '';
+
+        // Phrasen mischen
+        const shuffled = [...data].sort(() => Math.random() - 0.5);
+
+        shuffled.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'phrase-item';
+            div.textContent = item.text;
+            div.onclick = () => handleSelection(div, item.isError);
+            list.appendChild(div);
+        });
+    }
+
+    function handleSelection(element, isError) {
+        // Verhindern, dass bereits gefundene Fehler erneut gezählt werden
+        if (element.classList.contains('found-error') || element.classList.contains('mistake')) {
+            return;
+        }
+
+        if (isError) {
+            // Richtig identifizierter Fehler
+            element.classList.add('found-error');
+            foundCount++;
+            updateCounter();
+            
+            if (foundCount === totalErrors) {
+                setTimeout(() => {
+                    alert("Super! Du hast alle Fehler gefunden!");
+                }, 300);
+            }
+        } else {
+            // Fälschlicherweise als Fehler markiert
+            element.classList.add('mistake');
+            setTimeout(() => {
+                element.classList.remove('mistake');
+                alert("Diese Phrase ist eigentlich korrekt!");
+            }, 500);
+        }
+    }
+
+    function updateCounter() {
+        document.getElementById('counter').textContent = `Gefundene Fehler: ${foundCount} / ${totalErrors}`;
+    }
+
+    // Start
+    initExercise();
+</script>
+
+</body>
+</html>
