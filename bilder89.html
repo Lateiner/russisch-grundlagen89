@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Belebtheit im Akkusativ</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 { font-size: 1.4rem; color: var(--primary-color); margin-bottom: 20px; }
+
+        /* Satz-Anzeige */
+        .sentence-display {
+            background: #eef2f7;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        .sentence-text {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .translation-hint {
+            display: block;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Bilder-Gitter */
+        .image-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .image-card {
+            background: #fff;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .image-card:hover {
+            border-color: var(--accent-color);
+            background: #f0f8ff;
+            transform: translateY(-3px);
+        }
+
+        .emoji {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .label {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* Feedback-Farben */
+        .correct {
+            background-color: var(--success-color) !important;
+            border-color: var(--success-color) !important;
+            color: white !important;
+        }
+
+        .wrong {
+            background-color: var(--error-color) !important;
+            border-color: var(--error-color) !important;
+            color: white !important;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .progress { font-size: 0.9rem; color: #777; }
+
+        #next-btn, #reset-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #next-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        @media (max-width: 450px) {
+            .sentence-text { font-size: 1.3rem; }
+            .emoji { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Was sehe ich?</h1>
+
+    <div id="game-ui">
+        <div class="sentence-display">
+            <span class="sentence-text" id="sentence">Я вижу четырех...</span>
+            <span class="translation-hint" id="hint">Ich sehe vier...</span>
+        </div>
+
+        <div class="image-grid" id="imageGrid">
+            <!-- Karten werden per JS geladen -->
+        </div>
+
+        <div class="controls">
+            <span class="progress" id="progress-text">Aufgabe 1 von 8</span>
+            <button id="next-btn" onclick="loadNext()" disabled>Weiter</button>
+        </div>
+    </div>
+
+    <div id="result-ui" style="display: none;">
+        <h2>Ergebnis</h2>
+        <p id="score-text"></p>
+        <button id="reset-btn" onclick="initQuiz()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        { 
+            sentence: "Я вижу четырех...", 
+            correct: { emoji: "🧑‍💻", label: "специалистов (Belebt)" },
+            wrong: { emoji: "🏞️", label: "озера (Unbelebt)" }
+        },
+        { 
+            sentence: "Я вижу четыре...", 
+            correct: { emoji: "📓", label: "тетради (Unbelebt)" },
+            wrong: { emoji: "🧑‍🎓", label: "студента (Belebt)" }
+        },
+        { 
+            sentence: "Я вижу двух...", 
+            correct: { emoji: "🐈", label: "котов (Belebt)" },
+            wrong: { emoji: "🏨", label: "отеля (Unbelebt)" }
+        },
+        { 
+            sentence: "Я вижу две...", 
+            correct: { emoji: "💡", label: "лампы (Unbelebt)" },
+            wrong: { emoji: "👭", label: "подруги (Belebt)" }
+        },
+        { 
+            sentence: "Я вижу трёх...", 
+            correct: { emoji: "🧑‍⚕️", label: "врачей (Belebt)" },
+            wrong: { emoji: "🏛️", label: "музея (Unbelebt)" }
+        },
+        { 
+            sentence: "Я вижу три...", 
+            correct: { emoji: "📱", label: "телефона (Unbelebt)" },
+            wrong: { emoji: "👨‍🏫", label: "учителя (Belebt)" }
+        },
+        { 
+            sentence: "Я вижу одного...", 
+            correct: { emoji: "🤵", label: "друга (Belebt)" },
+            wrong: { emoji: "🪑", label: "стул (Unbelebt)" }
+        },
+        { 
+            sentence: "Я вижу одно...", 
+            correct: { emoji: "🪟", label: "окно (Unbelebt)" },
+            wrong: { emoji: "👶", label: "ребёнка (Belebt)" }
+        }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let answered = false;
+
+    function initQuiz() {
+        currentIdx = 0;
+        score = 0;
+        quizData.sort(() => Math.random() - 0.5);
+        document.getElementById('game-ui').style.display = 'block';
+        document.getElementById('result-ui').style.display = 'none';
+        showQuestion();
+    }
+
+    function showQuestion() {
+        answered = false;
+        document.getElementById('next-btn').disabled = true;
+        const q = quizData[currentIdx];
+        
+        document.getElementById('sentence').textContent = q.sentence;
+        document.getElementById('progress-text').textContent = `Aufgabe ${currentIdx + 1} von ${quizData.length}`;
+
+        const grid = document.getElementById('imageGrid');
+        grid.innerHTML = '';
+
+        // Optionen mischen
+        const options = [
+            { data: q.correct, isCorrect: true },
+            { data: q.wrong, isCorrect: false }
+        ].sort(() => Math.random() - 0.5);
+
+        options.forEach(opt => {
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            card.innerHTML = `
+                <span class="emoji">${opt.data.emoji}</span>
+                <span class="label">${opt.data.label}</span>
+            `;
+            card.onclick = () => checkAnswer(card, opt.isCorrect);
+            grid.appendChild(card);
+        });
+    }
+
+    function checkAnswer(card, isCorrect) {
+        if (answered) return;
+        answered = true;
+
+        if (isCorrect) {
+            card.classList.add('correct');
+            score++;
+        } else {
+            card.classList.add('wrong');
+            // Zeige die richtige Karte an
+            document.querySelectorAll('.image-card').forEach(c => {
+                if (c.innerHTML.includes(quizData[currentIdx].correct.emoji)) {
+                    c.classList.add('correct');
+                }
+            });
+        }
+        document.getElementById('next-btn').disabled = false;
+    }
+
+    function loadNext() {
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            showQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('result-ui').style.display = 'block';
+        document.getElementById('score-text').textContent = `Du hast ${score} von ${quizData.length} Punkten erreicht.`;
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>
