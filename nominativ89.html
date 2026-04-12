@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Nominativ 2, 3, 4</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .instruction {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f0f4f8;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .option-btn:hover { border-color: var(--accent-color); }
+
+        .correct { background-color: var(--success-color) !important; border-color: var(--success-color) !important; color: white; }
+        .wrong { background-color: var(--error-color) !important; border-color: var(--error-color) !important; color: white; }
+
+        .quiz-footer {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-bar { font-size: 0.9rem; color: #777; }
+
+        #next-btn, #reset-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #next-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        .result-screen { text-align: center; display: none; }
+        .score-display { font-size: 3rem; font-weight: bold; color: var(--accent-color); margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="quiz-ui">
+        <h1>Wie sagt man das?</h1>
+        <p class="instruction">Wähle die richtige Übersetzung für den Nominativ.</p>
+
+        <div class="quiz-card">
+            <div class="question-text" id="question">Lade Frage...</div>
+            <div class="options-container" id="options"></div>
+        </div>
+
+        <div class="quiz-footer">
+            <div class="progress-bar" id="progress">Frage 1 / 10</div>
+            <button id="next-btn" onclick="nextQuestion()" disabled>Weiter</button>
+        </div>
+    </div>
+
+    <div id="result-ui" class="result-screen">
+        <h1>Ergebnis</h1>
+        <div class="score-display" id="score">0 / 10</div>
+        <p id="result-text"></p>
+        <button id="reset-btn" onclick="startQuiz()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "zwei Fenster", correct: "два окна", options: ["две окна", "два окно", "два окна"] },
+        { q: "zwei Bücher", correct: "две книги", options: ["два книги", "две книга", "две книги"] },
+        { q: "drei Studenten", correct: "три студента", options: ["три студент", "три студента", "три студентов"] },
+        { q: "vier Gebäude", correct: "четыре здания", options: ["четыре здание", "четыре здания", "четыре зданий"] },
+        { q: "zwei Zeitschriften", correct: "два журнала", options: ["два журнала", "две журнала", "два журнал"] },
+        { q: "drei Zeitungen", correct: "три газеты", options: ["три газета", "три газеты", "три газet"] },
+        { q: "vier Katzen (m)", correct: "четыре кота", options: ["четыре кот", "четыре кота", "четыре коты"] },
+        { q: "zwei Wörter", correct: "два слова", options: ["два слова", "две слова", "два слово"] },
+        { q: "zwei Hände/Arme", correct: "две руки", options: ["два руки", "две рука", "две руки"] },
+        { q: "vier Betten", correct: "четыре кровати", options: ["четыре кровать", "четыре кровати", "четыре кроватей"] }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let answered = false;
+
+    function startQuiz() {
+        currentIdx = 0;
+        score = 0;
+        questions.sort(() => Math.random() - 0.5);
+        document.getElementById('quiz-ui').style.display = 'block';
+        document.getElementById('result-ui').style.display = 'none';
+        showQuestion();
+    }
+
+    function showQuestion() {
+        answered = false;
+        document.getElementById('next-btn').disabled = true;
+        const qData = questions[currentIdx];
+        document.getElementById('question').textContent = `Wie heißt „${qData.q}“?`;
+        document.getElementById('progress').textContent = `Frage ${currentIdx + 1} / ${questions.length}`;
+
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = '';
+
+        const shuffledOptions = [...qData.options].sort(() => Math.random() - 0.5);
+        shuffledOptions.forEach(opt => {
+            const b = document.createElement('button');
+            b.className = 'option-btn';
+            b.textContent = opt;
+            b.onclick = () => checkAnswer(b, opt);
+            optionsDiv.appendChild(b);
+        });
+    }
+
+    function checkAnswer(btn, choice) {
+        if (answered) return;
+        answered = true;
+        const correct = questions[currentIdx].correct;
+        const allBtns = document.querySelectorAll('.option-btn');
+
+        if (choice === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            allBtns.forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
+        }
+        document.getElementById('next-btn').disabled = false;
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < questions.length) showQuestion();
+        else showResults();
+    }
+
+    function showResults() {
+        document.getElementById('quiz-ui').style.display = 'none';
+        document.getElementById('result-ui').style.display = 'block';
+        document.getElementById('score').textContent = `${score} / ${questions.length}`;
+        document.getElementById('result-text').textContent = score > 7 ? "Sehr gut!" : "Weiter üben!";
+    }
+
+    startQuiz();
+</script>
+</body>
+</html>
