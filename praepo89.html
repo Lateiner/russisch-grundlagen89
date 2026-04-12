@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Präpositionen & Zahlwörter</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h1 { text-align: center; font-size: 1.4rem; color: var(--primary-color); margin: 0 0 10px 0; }
+        .instruction { text-align: center; font-size: 0.9rem; color: #555; margin-bottom: 20px; }
+
+        /* Gitter für die 12 Präpositionen */
+        .prep-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .prep-item {
+            background: #fff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+            min-height: 65px;
+            justify-content: center;
+        }
+
+        .prep-item:hover:not(.correct) { border-color: var(--accent-color); background: #f0f7ff; }
+        .prep-item.selected { border-color: var(--primary-color); background: #e2e8f0; transform: scale(0.96); }
+
+        .prep-title { font-size: 1.15rem; font-weight: bold; color: var(--primary-color); }
+        .prep-case { font-size: 0.75rem; color: #7f8c8d; margin-top: 4px; }
+
+        /* Antwort-Sektion */
+        .answer-section {
+            background: #eee;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .group-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .option-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .option-btn:hover { background: #2980b9; }
+
+        /* Feedback */
+        .correct { background-color: var(--success-color) !important; border-color: var(--success-color) !important; color: white !important; cursor: default; }
+        .correct .prep-case, .correct .prep-title { color: white !important; }
+        .wrong { background-color: var(--error-color) !important; border-color: var(--error-color) !important; color: white !important; }
+
+        .controls { margin-top: 20px; text-align: center; display: flex; justify-content: center; gap: 10px; }
+        button { padding: 10px 20px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
+        #reset-btn { background: var(--primary-color); color: white; }
+        #solution-btn { background: #f39c12; color: white; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 480px) {
+            .prep-grid { grid-template-columns: repeat(2, 1fr); }
+            .option-btn { font-size: 0.9rem; padding: 6px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Präpositionen & Zahlwörter</h1>
+    <p class="instruction">Wähle eine Box und dann die korrekte Form der Zahl.</p>
+
+    <div class="prep-grid" id="prepGrid"></div>
+
+    <div class="answer-section">
+        <div class="group-label">Zahl: 2 (два/две)</div>
+        <div class="btn-group">
+            <button class="option-btn" onclick="checkMatch('двух')">двух</button>
+            <button class="option-btn" onclick="checkMatch('двум')">двум</button>
+            <button class="option-btn" onclick="checkMatch('двумя')">двумя</button>
+        </div>
+        
+        <div class="group-label">Zahl: 3 (три)</div>
+        <div class="btn-group">
+            <button class="option-btn" onclick="checkMatch('трёх')">трёх</button>
+            <button class="option-btn" onclick="checkMatch('трём')">трём</button>
+            <button class="option-btn" onclick="checkMatch('тремя')">тремя</button>
+        </div>
+
+        <div class="group-label">Zahl: 4 (четыре)</div>
+        <div class="btn-group">
+            <button class="option-btn" onclick="checkMatch('четырёх')">четырёх</button>
+            <button class="option-btn" onclick="checkMatch('четырём')">четырём</button>
+            <button class="option-btn" onclick="checkMatch('четырьмя')">четырьмя</button>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="solution-btn" onclick="showSolution()">Lösung</button>
+        <button id="reset-btn" onclick="initExercise()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const data = [
+        { p: "без", c: "Genitiv", a: "двух" },
+        { p: "к", c: "Dativ", a: "двум" },
+        { p: "с", c: "Instrumental", a: "двумя" },
+        { p: "об", c: "Präpositional", a: "двух" },
+        { p: "после", c: "Genitiv", a: "трёх" },
+        { p: "по", c: "Dativ", a: "трём" },
+        { p: "над", c: "Instrumental", a: "тремя" },
+        { p: "в", c: "Präpositional", a: "трёх" },
+        { p: "из-за", c: "Genitiv", a: "четырёх" },
+        { p: "к", c: "Dativ", a: "четырём" },
+        { p: "перед", c: "Instrumental", a: "четырьмя" },
+        { p: "на", c: "Präpositional", a: "четырёх" }
+    ];
+
+    let selectedElement = null;
+    let lockBoard = false;
+
+    function initExercise() {
+        const grid = document.getElementById('prepGrid');
+        grid.innerHTML = '';
+        selectedElement = null;
+        lockBoard = false;
+        document.getElementById('solution-btn').disabled = false;
+
+        const shuffled = [...data].sort(() => Math.random() - 0.5);
+
+        shuffled.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'prep-item';
+            div.dataset.answer = item.a;
+            div.dataset.prep = item.p;
+            div.dataset.case = item.c;
+            updateItemContent(div);
+            div.onclick = () => selectPrep(div);
+            grid.appendChild(div);
+        });
+    }
+
+    function updateItemContent(el, showAns = false) {
+        const prep = el.dataset.prep;
+        const kasis = el.dataset.case;
+        const ans = el.dataset.answer;
+        if (showAns) {
+            el.innerHTML = `<span class="prep-title">${prep} ${ans}</span><span class="prep-case">${kasis}</span>`;
+        } else {
+            el.innerHTML = `<span class="prep-title">${prep} ...</span><span class="prep-case">${kasis}</span>`;
+        }
+    }
+
+    function selectPrep(el) {
+        if (lockBoard || el.classList.contains('correct')) return;
+        document.querySelectorAll('.prep-item').forEach(item => item.classList.remove('selected', 'wrong'));
+        el.classList.add('selected');
+        selectedElement = el;
+    }
+
+    function checkMatch(choice) {
+        if (lockBoard || !selectedElement) return;
+
+        if (choice === selectedElement.dataset.answer) {
+            selectedElement.className = 'prep-item correct';
+            updateItemContent(selectedElement, true);
+            selectedElement = null;
+        } else {
+            selectedElement.classList.add('wrong');
+            setTimeout(() => {
+                if (selectedElement && !selectedElement.classList.contains('correct')) {
+                    selectedElement.classList.remove('wrong');
+                }
+            }, 600);
+        }
+    }
+
+    function showSolution() {
+        if (lockBoard) return;
+        lockBoard = true;
+        document.getElementById('solution-btn').disabled = true;
+        
+        const allItems = document.querySelectorAll('.prep-item');
+        allItems.forEach(item => {
+            item.className = 'prep-item correct';
+            updateItemContent(item, true);
+        });
+        
+        selectedElement = null;
+    }
+
+    initExercise();
+</script>
+
+</body>
+</html>
