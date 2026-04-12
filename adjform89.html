@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Dropdown-Satzbau (10 Sätze)</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 650px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .instruction {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .sentence-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sentence-item {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            padding: 12px;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            color: #333;
+            transition: transform 0.2s;
+        }
+
+        /* Dropdown Styling */
+        select {
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: bold;
+            padding: 3px 6px;
+            border: 2px solid var(--accent-color);
+            border-radius: 5px;
+            background-color: #fff;
+            cursor: pointer;
+            color: var(--accent-color);
+            transition: all 0.3s;
+            margin: 0 4px;
+        }
+
+        /* Feedback-Zustände */
+        .correct {
+            border-color: var(--success-color) !important;
+            background-color: #e8f5e9 !important;
+            color: var(--success-color) !important;
+        }
+
+        .wrong {
+            border-color: var(--error-color) !important;
+            background-color: #ffebee !important;
+            color: var(--error-color) !important;
+        }
+
+        .controls {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        #reset-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 35px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        #reset-btn:hover { background: #34495e; }
+
+        @media (max-width: 480px) {
+            .container { padding: 15px; }
+            .sentence-item { font-size: 0.95rem; padding: 10px; }
+            select { font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Adjektive nach 2, 3, 4</h1>
+    <p class="instruction">Wähle die korrekte Adjektivform im Satz aus.</p>
+    
+    <div class="sentence-list" id="sentenceList"></div>
+
+    <div class="controls">
+        <button id="reset-btn" onclick="initExercise()">Neustart & Mischen</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        { before: "Здесь стоят три ", after: " студента.", options: ["умных", "умные"], correct: "умных" },
+        { before: "Я вижу две ", after: " книги.", options: ["новых", "новые"], correct: "новые" },
+        { before: "Там стоят два ", after: " здания.", options: ["высоких", "высокие"], correct: "высоких" },
+        { before: "У неё есть три ", after: " подруги.", options: ["верных", "верные"], correct: "верные" },
+        { before: "На полке леget два ", after: " словаря.", options: ["старых", "старые"], correct: "старых" },
+        { before: "Мы купили четыре ", after: " окна.", options: ["больших", "большие"], correct: "больших" },
+        { before: "В комнате стоят две ", after: " кровати.", options: ["старых", "старые"], correct: "старые" },
+        { before: "Я купил три ", after: " билета.", options: ["дорогих", "дорогие"], correct: "дорогих" },
+        { before: "Там лежат четыре ", after: " газеты.", options: ["длинных", "длинные"], correct: "длинные" },
+        { before: "Здесь есть два ", after: " упражнения.", options: ["трудных", "трудные"], correct: "трудных" }
+    ];
+
+    function initExercise() {
+        const list = document.getElementById('sentenceList');
+        list.innerHTML = '';
+
+        // 1. Sätze mischen
+        const shuffledQuestions = [...quizData].sort(() => Math.random() - 0.5);
+
+        shuffledQuestions.forEach((data, index) => {
+            const div = document.createElement('div');
+            div.className = 'sentence-item';
+            
+            div.appendChild(document.createTextNode(data.before));
+
+            const select = document.createElement('select');
+            
+            const defaultOpt = document.createElement('option');
+            defaultOpt.text = "...";
+            defaultOpt.value = "";
+            defaultOpt.disabled = true;
+            defaultOpt.selected = true;
+            select.appendChild(defaultOpt);
+
+            // 2. Optionen innerhalb des Dropdowns mischen
+            const shuffledOptions = [...data.options].sort(() => Math.random() - 0.5);
+            shuffledOptions.forEach(opt => {
+                const o = document.createElement('option');
+                o.text = opt;
+                o.value = opt;
+                select.appendChild(o);
+            });
+
+            select.onchange = () => {
+                if (select.value === data.correct) {
+                    select.className = 'correct';
+                } else {
+                    select.className = 'wrong';
+                }
+            };
+            
+            div.appendChild(select);
+            div.appendChild(document.createTextNode(data.after));
+            list.appendChild(div);
+        });
+    }
+
+    // Start
+    initExercise();
+</script>
+
+</body>
+</html>
