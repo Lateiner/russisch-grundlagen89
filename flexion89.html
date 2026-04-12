@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Flexionstabelle 2, 3, 4</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 { text-align: center; font-size: 1.4rem; color: var(--primary-color); margin-bottom: 10px; }
+        .instruction { text-align: center; font-size: 0.9rem; color: #555; margin-bottom: 20px; }
+
+        /* Wort-Pool Styling */
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            background: #eee;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            min-height: 50px;
+        }
+
+        .word-card {
+            background: var(--accent-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            user-select: none;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .word-card:hover { background: #2980b9; }
+        .word-card.selected { background: var(--primary-color); transform: scale(0.95); outline: 2px solid #f1c40f; }
+
+        /* Tabellen Styling */
+        .table-wrapper {
+            overflow-x: auto; /* Wichtig für Responsivität auf Smartphones */
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px; /* Garantiert Lesbarkeit beim Scrollen */
+            background: white;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        th { background-color: #f8f9fa; color: var(--primary-color); }
+
+        .case-label { font-weight: bold; background: #f8f9fa; text-align: left; }
+
+        /* Lücken-Felder */
+        .drop-zone {
+            background: #fff9c4;
+            cursor: pointer;
+            font-weight: bold;
+            min-width: 90px;
+            height: 35px;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+
+        .drop-zone:hover { background: #fff176; }
+
+        /* Feedback Zustände */
+        .correct { background-color: var(--success-color) !important; color: white !important; border-color: var(--success-color); }
+        .wrong { background-color: var(--error-color) !important; color: white !important; border-color: var(--error-color); }
+
+        .controls { display: flex; justify-content: center; gap: 10px; }
+        button.action-btn { padding: 10px 20px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
+        #reset-btn { background: var(--primary-color); color: white; }
+        #solution-btn { background: #f39c12; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Flexionstabelle: 2, 3, 4</h1>
+    <p class="instruction">
+        Wähle ein Wort aus dem blauen Pool und klicke dann auf die passende gelbe Lücke in der Tabelle.
+    </p>
+
+    <!-- Pool der Wörter -->
+    <div class="word-pool" id="wordPool"></div>
+
+    <!-- Tabelle der Fälle -->
+    <div class="table-wrapper">
+        <table id="flexionTable">
+            <thead>
+                <tr>
+                    <th>Fall</th>
+                    <th>2 (m/n)</th>
+                    <th>2 (f)</th>
+                    <th>3</th>
+                    <th>4</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="case-label">Genitiv</td>
+                    <td class="drop-zone" data-answer="двух"></td>
+                    <td class="drop-zone" data-answer="двух"></td>
+                    <td class="drop-zone" data-answer="трёх"></td>
+                    <td class="drop-zone" data-answer="четырёх"></td>
+                </tr>
+                <tr>
+                    <td class="case-label">Dativ</td>
+                    <td class="drop-zone" data-answer="двум"></td>
+                    <td class="drop-zone" data-answer="двум"></td>
+                    <td class="drop-zone" data-answer="трём"></td>
+                    <td class="drop-zone" data-answer="четырём"></td>
+                </tr>
+                <tr>
+                    <td class="case-label">Instrumental</td>
+                    <td class="drop-zone" data-answer="двумя"></td>
+                    <td class="drop-zone" data-answer="двумя"></td>
+                    <td class="drop-zone" data-answer="тремя"></td>
+                    <td class="drop-zone" data-answer="четырьмя"></td>
+                </tr>
+                <tr>
+                    <td class="case-label">Präpositional</td>
+                    <td class="drop-zone" data-answer="двух"></td>
+                    <td class="drop-zone" data-answer="двух"></td>
+                    <td class="drop-zone" data-answer="трёх"></td>
+                    <td class="drop-zone" data-answer="четырёх"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="controls">
+        <button class="action-btn" id="solution-btn" onclick="showSolution()">Lösung</button>
+        <button class="action-btn" id="reset-btn" onclick="initExercise()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const answers = [
+        "двух", "двух", "трёх", "четырёх",
+        "двум", "двум", "трём", "четырём",
+        "двумя", "двумя", "тремя", "четырьмя",
+        "двух", "двух", "трёх", "четырёх"
+    ];
+
+    // Eindeutige Wörter für den Pool (Dubletten entfernen für die Anzeige)
+    const uniqueWords = [...new Set(answers)];
+
+    let selectedWord = null;
+    let lockBoard = false;
+
+    function initExercise() {
+        const pool = document.getElementById('wordPool');
+        const zones = document.querySelectorAll('.drop-zone');
+        
+        pool.innerHTML = '';
+        selectedWord = null;
+        lockBoard = false;
+
+        // Wörter mischen und Pool füllen
+        const shuffledWords = [...uniqueWords].sort(() => Math.random() - 0.5);
+        shuffledWords.forEach(word => {
+            const card = document.createElement('div');
+            card.className = 'word-card';
+            card.textContent = word;
+            card.onclick = () => selectWord(card);
+            pool.appendChild(card);
+        });
+
+        // Lücken zurücksetzen
+        zones.forEach(zone => {
+            zone.textContent = '';
+            zone.className = 'drop-zone';
+            zone.onclick = () => fillZone(zone);
+        });
+    }
+
+    function selectWord(card) {
+        if (lockBoard) return;
+        document.querySelectorAll('.word-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedWord = card.textContent;
+    }
+
+    function fillZone(zone) {
+        if (lockBoard || !selectedWord || zone.classList.contains('correct')) return;
+
+        zone.textContent = selectedWord;
+        
+        if (selectedWord === zone.dataset.answer) {
+            zone.className = 'drop-zone correct';
+        } else {
+            zone.className = 'drop-zone wrong';
+            setTimeout(() => {
+                if (!zone.classList.contains('correct')) {
+                    zone.textContent = '';
+                    zone.className = 'drop-zone';
+                }
+            }, 800);
+        }
+        
+        // Auswahl nach dem Setzen aufheben
+        selectedWord = null;
+        document.querySelectorAll('.word-card').forEach(c => c.classList.remove('selected'));
+    }
+
+    function showSolution() {
+        if (lockBoard) return;
+        lockBoard = true;
+        
+        const zones = document.querySelectorAll('.drop-zone');
+        zones.forEach(zone => {
+            zone.textContent = zone.dataset.answer;
+            zone.className = 'drop-zone correct';
+        });
+    }
+
+    // Initialisierung beim Start
+    initExercise();
+</script>
+
+</body>
+</html>
