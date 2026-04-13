@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Urlaubs-Lückentext</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .story-box {
+            line-height: 2.8; /* Großer Zeilenabstand für mobile Bedienung */
+            font-size: 1.15rem;
+            color: #333;
+            text-align: justify;
+            background: #fdfdfd;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+
+        /* Dropdown Styling */
+        select {
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: bold;
+            padding: 4px 8px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            cursor: pointer;
+            color: var(--accent-color);
+            transition: all 0.3s;
+            margin: 0 2px;
+            text-align: center;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        /* Feedback-Zustände */
+        .correct {
+            border-color: var(--success-color) !important;
+            background-color: #e8f5e9 !important;
+            color: var(--success-color) !important;
+        }
+
+        .wrong {
+            border-color: var(--error-color) !important;
+            background-color: #ffebee !important;
+            color: var(--error-color) !important;
+        }
+
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        #reset-btn { background: var(--primary-color); color: white; }
+        #solution-btn { background: #f39c12; color: white; }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .story-box { font-size: 1rem; line-height: 3; padding: 10px; }
+            select { font-size: 0.9rem; padding: 2px 4px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Ein Urlaub in Russland</h1>
+    <p style="text-align:center; color:#666; margin-bottom:20px;">Wähle die richtigen Formen aus. Du erhältst sofort Feedback!</p>
+    
+    <div class="story-box" id="story">
+        Прошлым летом я был в России. Я жил в 
+        <select data-answer="одном" onchange="checkIndividual(this)">
+            <option value="">...</option>
+            <option value="одном">одном</option>
+            <option value="один">один</option>
+            <option value="одному">одному</option>
+        </select>
+        <select data-answer="красивом" onchange="checkIndividual(this)">
+            <option value="">...</option>
+            <option value="красивый">красивый</option>
+            <option value="красивом">красивом</option>
+            <option value="красивых">красивых</option>
+        </select>
+        городе. Там я видел 
+        <select data-answer="два" onchange="checkIndividual(this)">
+            <option value="">...</option>
+            <option value="два">два</option>
+            <option value="две">две</option>
+            <option value="двух">двух</option>
+        </select>
+        <select data-answer="высоких" onchange="checkIndividual(this)">
+            <option value="">...</option>
+            <option value="высокие">высокие</option>
+            <option value="высоких">высоких</option>
+            <option value="высокое">высокое</option>
+        </select>
+        здания. Однажды я пошёл в музей с 
+        <select data-answer="тремя" onchange="checkIndividual(this)">
+            <option value="">...</option>
+            <option value="три">три</option>
+            <option value="трех">трех</option>
+            <option value="тремя">тремя</option>
+        </select>
+        <select data-answer="новыми" onchange="checkIndividual(this)">
+            <option value="">...</option>
+            <option value="новые">новые</option>
+            <option value="новых">новых</option>
+            <option value="новыми">новыми</option>
+        </select>
+        друзьями. Мы встретили там 
+        <select data-answer="двух" onchange="checkIndividual(this)">
+            <option value="">...</option>
+            <option value="два">два</option>
+            <option value="две">две</option>
+            <option value="двух">двух</option>
+        </select>
+        <select data-answer="известных" onchange="checkIndividual(this)">
+            <option value="">...</option>
+            <option value="известные">известные</option>
+            <option value="известных">известных</option>
+            <option value="известно">известно</option>
+        </select>
+        художников. Вечером я купил 
+        <select data-answer="четыре" onchange="checkIndividual(this)">
+            <option value="">...</option>
+            <option value="четыре">четыре</option>
+            <option value="четырех">четырех</option>
+            <option value="четырьмя">четырьмя</option>
+        </select>
+        <select data-answer="русские" onchange="checkIndividual(this)">
+            <option value="">...</option>
+            <option value="русские">русские</option>
+            <option value="русских">русских</option>
+            <option value="русскую">русскую</option>
+        </select>
+        книги. Это была 
+        <select data-answer="одна" onchange="checkIndividual(this)">
+            <option value="">...</option>
+            <option value="один">один</option>
+            <option value="одна">одна</option>
+            <option value="одни">одни</option>
+        </select>
+        <select data-answer="хорошая" onchange="checkIndividual(this)">
+            <option value="">...</option>
+            <option value="хорошая">хорошая</option>
+            <option value="хороших">хороших</option>
+            <option value="хорошие">хорошие</option>
+        </select>
+        поездка!
+    </div>
+
+    <div class="controls">
+        <button id="solution-btn" onclick="showSolution()">Lösung</button>
+        <button id="reset-btn" onclick="resetText()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    // Sofortiges Feedback bei Auswahl
+    function checkIndividual(selectElement) {
+        const selectedValue = selectElement.value;
+        const correctAnswer = selectElement.getAttribute('data-answer');
+
+        if (selectedValue === "") {
+            selectElement.className = "";
+        } else if (selectedValue === correctAnswer) {
+            selectElement.className = "correct";
+        } else {
+            selectElement.className = "wrong";
+        }
+    }
+
+    // Alle richtigen Lösungen anzeigen
+    function showSolution() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.value = select.getAttribute('data-answer');
+            select.className = "correct";
+        });
+    }
+
+    // Alles zurücksetzen
+    function resetText() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.value = "";
+            select.className = "";
+        });
+    }
+</script>
+
+</body>
+</html>
