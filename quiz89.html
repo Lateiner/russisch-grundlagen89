@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Hörverstehen: Zahlwörter</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 { font-size: 1.4rem; color: var(--primary-color); margin-bottom: 20px; }
+
+        .instruction { font-size: 0.95rem; color: #666; margin-bottom: 30px; }
+
+        /* Audio Button Bereich */
+        .audio-section {
+            margin-bottom: 30px;
+        }
+
+        .play-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 2rem;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .play-btn:hover { background-color: #2980b9; transform: scale(1.05); }
+        .play-btn:active { transform: scale(0.95); }
+
+        /* Auswahl-Gitter */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--primary-color);
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover { border-color: var(--accent-color); background-color: #f0f8ff; }
+
+        /* Feedback */
+        .correct { background-color: var(--success-color) !important; border-color: var(--success-color) !important; color: white !important; }
+        .wrong { background-color: var(--error-color) !important; border-color: var(--error-color) !important; color: white !important; }
+
+        /* Steuerung */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .progress { font-size: 0.9rem; color: #777; }
+
+        #next-btn, #reset-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #next-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        @media (max-width: 400px) {
+            .options-grid { grid-template-columns: 1fr; }
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Hörverstehen</h1>
+    <p class="instruction">Klicke auf das Lautsprecher-Symbol, um das Wort zu hören. Wähle dann das richtige geschriebene Wort aus.</p>
+
+    <div id="game-ui">
+        <div class="audio-section">
+            <button class="play-btn" onclick="playAudio()">🔊</button>
+        </div>
+
+        <div class="options-grid" id="options">
+            <!-- Buttons werden per JS geladen -->
+        </div>
+
+        <div class="footer">
+            <div class="progress" id="progress">Aufgabe 1 von 10</div>
+            <button id="next-btn" onclick="nextQuestion()" disabled>Weiter</button>
+        </div>
+    </div>
+
+    <div id="result-ui" style="display: none;">
+        <h2>Ergebnis</h2>
+        <p id="score-text"></p>
+        <button id="reset-btn" onclick="location.reload()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        { correct: "четырьмя", options: ["четырьмя", "четыре", "четырём", "четырёх"] },
+        { correct: "двумя", options: ["двумя", "двум", "двух", "две"] },
+        { correct: "одном", options: ["одном", "одним", "одного", "одному"] },
+        { correct: "тремя", options: ["тремя", "трём", "трёх", "три"] },
+        { correct: "одной", options: ["одной", "одну", "одна", "одни"] },
+        { correct: "двух", options: ["двух", "двум", "двумя", "два"] },
+        { correct: "четырём", options: ["четырём", "четыре", "четырёх", "четырьмя"] },
+        { correct: "одного", options: ["одного", "одном", "одному", "один"] },
+        { correct: "трём", options: ["трём", "трёх", "тремя", "три"] },
+        { correct: "одним", options: ["одним", "одном", "одного", "одни"] }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let answered = false;
+    let synth = window.speechSynthesis;
+    let russianMaleVoice = null;
+
+    // Funktion zur Suche einer russischen männlichen Stimme
+    function loadVoices() {
+        let voices = synth.getVoices();
+        // Suche nach russischen Stimmen
+        let ruVoices = voices.filter(v => v.lang.includes('ru'));
+        // Versuche eine männliche Stimme zu finden (oft im Namen 'Male', 'Man' oder durch Anbieter erkennbar)
+        russianMaleVoice = ruVoices.find(v => v.name.includes('Male') || v.name.includes('Maxim') || v.name.includes('Pavel')) || ruVoices[0];
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    function playAudio() {
+        if (synth.speaking) synth.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(quizData[currentIdx].correct);
+        utterance.lang = 'ru-RU';
+        if (russianMaleVoice) utterance.voice = russianMaleVoice;
+        utterance.pitch = 0.9; // Etwas tiefer für männlichen Klang
+        utterance.rate = 0.8;  // Etwas langsamer für Schüler
+        synth.speak(utterance);
+    }
+
+    function showQuestion() {
+        answered = false;
+        document.getElementById('next-btn').disabled = true;
+        const q = quizData[currentIdx];
+        document.getElementById('progress').textContent = `Aufgabe ${currentIdx + 1} von ${quizData.length}`;
+
+        const grid = document.getElementById('options');
+        grid.innerHTML = '';
+
+        const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.onclick = () => checkAnswer(btn, opt);
+            grid.appendChild(btn);
+        });
+        
+        // Automatisch abspielen beim Start jeder Frage
+        setTimeout(playAudio, 500);
+    }
+
+    function checkAnswer(btn, choice) {
+        if (answered) return;
+        answered = true;
+        const correct = quizData[currentIdx].correct;
+
+        if (choice === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            document.querySelectorAll('.option-btn').forEach(b => {
+                if (b.textContent === correct) b.classList.add('correct');
+            });
+        }
+        document.getElementById('next-btn').disabled = false;
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            showQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('result-ui').style.display = 'block';
+        document.getElementById('score-text').textContent = `Du hast ${score} von ${quizData.length} Wörtern richtig erkannt!`;
+    }
+
+    // Initialisierung
+    loadVoices();
+    showQuestion();
+</script>
+
+</body>
+</html>
